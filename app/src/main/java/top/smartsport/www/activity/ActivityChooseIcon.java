@@ -1,13 +1,21 @@
 package top.smartsport.www.activity;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
 import android.view.View;
 import android.view.Window;
 import android.widget.TextView;
 
+import java.io.File;
+
 import top.smartsport.www.R;
+import top.smartsport.www.utils.AppUtil;
+import top.smartsport.www.utils.CameraUtils;
 
 /**
  * Created by bajieaichirou on 17/3/4.
@@ -17,11 +25,12 @@ public class ActivityChooseIcon extends Activity implements View.OnClickListener
 
     private TextView mCameraTxt, mPictureTxt, mCancelTxt;
 
-    private Intent intent;
-    private final int CODE_CHOOSE_ICON = 3;
-    private final String KEY_CHOOSE_ICON_TYPE = "choose_type";
-    private final String KEY_CHOOSE_TYPE_CAMERA = "choose_type_camera";
-    private final String KEY_CHOOSE_TYPE_PICTURE = "choose_type_picture";
+    private final int CODE_CHOOSE_ICON_CAMERA = 4;
+    private final int CODE_CHOOSE_ICON_PICTURE = 5;
+    private final int CODE_CHOOSE_ICON_ZOOM = 6;
+    private final String ICON_NAME = "ICON.jpg";
+    private Context mContext;
+    private Bitmap iconBitMap;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -32,6 +41,7 @@ public class ActivityChooseIcon extends Activity implements View.OnClickListener
     }
 
     private void initUI() {
+        mContext = ActivityChooseIcon.this;
         mCameraTxt = (TextView) findViewById(R.id.choose_camera);
         mPictureTxt = (TextView) findViewById(R.id.choose_picture);
         mCancelTxt = (TextView) findViewById(R.id.choose_cancel);
@@ -43,23 +53,38 @@ public class ActivityChooseIcon extends Activity implements View.OnClickListener
 
     @Override
     public void onClick(View v) {
-        intent = new Intent();
         switch (v.getId()){
             case R.id.choose_camera:
-                intent.putExtra(KEY_CHOOSE_ICON_TYPE, KEY_CHOOSE_TYPE_CAMERA);
-                setResult(CODE_CHOOSE_ICON, intent);
-                this.finish();
+                new CameraUtils().chooseCamera(mContext,
+                        ICON_NAME, CODE_CHOOSE_ICON_CAMERA);
                 break;
             case R.id.choose_picture:
-                intent.putExtra(KEY_CHOOSE_ICON_TYPE, KEY_CHOOSE_TYPE_PICTURE);
-                setResult(CODE_CHOOSE_ICON, intent);
-                this.finish();
+                new CameraUtils(). choosePicture(mContext, CODE_CHOOSE_ICON_PICTURE);
                 break;
             case R.id.choose_cancel:
-                intent.putExtra(KEY_CHOOSE_ICON_TYPE, "");
-                setResult(CODE_CHOOSE_ICON, intent);
                 this.finish();
                 break;
         }
     }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        String temp;
+        if (requestCode == CODE_CHOOSE_ICON_CAMERA){//相机返回
+            new CameraUtils().startPhotoZoom(mContext,
+                    Uri.fromFile(new File(Environment.getExternalStorageDirectory(), ICON_NAME)), CODE_CHOOSE_ICON_ZOOM);
+        }else if ((data != null) &&(requestCode == CODE_CHOOSE_ICON_PICTURE)){//图册返回
+            new CameraUtils().startPhotoZoom(mContext, data.getData(), CODE_CHOOSE_ICON_ZOOM);
+        }else if ((data != null) && (requestCode == CODE_CHOOSE_ICON_ZOOM)){//裁剪完后
+            Bundle extras = data.getExtras();
+            if (extras != null) {
+                iconBitMap = AppUtil.toRoundBitmap((Bitmap)extras.getParcelable("data"));
+                String path = new CameraUtils().saveIcon(mContext, iconBitMap, ICON_NAME);
+                setResult(Activity.RESULT_OK, new Intent().putExtra("path", path));
+                finish();
+            }
+        }
+    }
+
 }
