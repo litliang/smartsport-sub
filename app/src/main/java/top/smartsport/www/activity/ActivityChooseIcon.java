@@ -13,6 +13,7 @@ import android.widget.TextView;
 
 import java.io.File;
 
+import activitybase.CallbackActivity;
 import top.smartsport.www.R;
 import top.smartsport.www.utils.AppUtil;
 import top.smartsport.www.utils.CameraUtils;
@@ -21,7 +22,7 @@ import top.smartsport.www.utils.CameraUtils;
  * Created by bajieaichirou on 17/3/4.
  * 选择拍照 相册
  */
-public class ActivityChooseIcon extends Activity implements View.OnClickListener{
+public class ActivityChooseIcon extends CallbackActivity implements View.OnClickListener{
 
     private TextView mCameraTxt, mPictureTxt, mCancelTxt;
 
@@ -31,6 +32,8 @@ public class ActivityChooseIcon extends Activity implements View.OnClickListener
     private final String ICON_NAME = "ICON.jpg";
     private Context mContext;
     private Bitmap iconBitMap;
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

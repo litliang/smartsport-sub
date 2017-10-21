@@ -100,8 +100,7 @@ public class AccountSetActivity extends BaseActivity {
         mSetIconRl.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(AccountSetActivity.this, ActivityChooseIcon.class);
-                startActivityForResult(intent, CODE_CHOOSE_ICON);
+                ActivityChooseIcon.getInstance().invokeResultActivity(AccountSetActivity.this,3);
             }
         });
 
@@ -112,6 +111,7 @@ public class AccountSetActivity extends BaseActivity {
             }
         });
     }
+
 
     @Event(value = {R.id.account_btn_login_out})
     private void getEvent(View v) {

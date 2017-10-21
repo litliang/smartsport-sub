@@ -540,7 +540,10 @@
         <activity
             android:name="app.auto.DrawerLeftActivity"
             android:label="" />
-        <activity android:name="app.auto.ActionActivity" android:theme="@style/my_dialog"></activity>
+        <activity
+            android:name="app.auto.ActionActivity"
+            android:theme="@style/my_dialog" />
+        <activity android:name="activitybase.CallbackActivity"></activity>
     </application>
 
 </manifest>
