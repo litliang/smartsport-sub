@@ -100,7 +100,8 @@ public class AccountSetActivity extends BaseActivity {
         mSetIconRl.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                ActivityChooseIcon.getInstance().invokeResultActivity(AccountSetActivity.this,3);
+//                ActivityChooseIcon.getInstance().invokeResultActivity(AccountSetActivity.this,3);
+                startActivityForResult(new Intent(AccountSetActivity.this, com.common.pic.ActivityChooseIcon.class), 3);
             }
         });
 
@@ -135,7 +136,6 @@ public class AccountSetActivity extends BaseActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        String temp;
         if (requestCode == CODE_CHOOSE_ICON){
             if(data != null) {
                 String path = data.getStringExtra("path");

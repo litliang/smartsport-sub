@@ -60,6 +60,7 @@
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:supportsRtl="true"
+        tools:replace="android:icon, android:label, android:theme"
         android:theme="@style/AppTheme">
         <meta-data
             android:name="design_width"
@@ -530,8 +531,13 @@
 
         <!-- 选择头像 -->
         <activity
+            android:name="com.common.pic.ActivityChooseIcon"
+            android:theme="@style/my_dialog" />
+<!--
+        <activity
             android:name=".activity.ActivityChooseIcon"
             android:theme="@style/my_dialog" />
+-->
 
         <!-- 购买定制视频 -->
         <activity

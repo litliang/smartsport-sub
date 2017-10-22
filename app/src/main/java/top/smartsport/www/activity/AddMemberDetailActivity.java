@@ -1,14 +1,7 @@
 package top.smartsport.www.activity;
 
-import org.xutils.view.annotation.ContentView;
-
-import top.smartsport.www.base.BaseActivity;
 import android.content.Intent;
 import android.graphics.Bitmap;
-import android.net.Uri;
-import android.os.Bundle;
-import android.os.Environment;
-import android.provider.MediaStore;
 import android.text.TextUtils;
 import android.view.View;
 import android.widget.Button;
@@ -17,10 +10,13 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
+import com.common.pic.ActivityChooseIcon;
+
 import org.xutils.view.annotation.ContentView;
 import org.xutils.view.annotation.ViewInject;
 
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.util.HashMap;
 import java.util.List;
@@ -35,8 +31,6 @@ import top.smartsport.www.base.BaseActivity;
 import top.smartsport.www.bean.NetEntity;
 import top.smartsport.www.bean.RegInfo;
 import top.smartsport.www.bean.TokenInfo;
-import top.smartsport.www.utils.AppUtil;
-import top.smartsport.www.utils.FileHelper;
 import top.smartsport.www.xutils3.MyCallBack;
 import top.smartsport.www.xutils3.X;
 
@@ -134,110 +128,22 @@ public class AddMemberDetailActivity extends BaseActivity {
             callHttp(m.get(), func);
     }
 
-    private void chooseCamera(){
-        Intent in = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-        // 判断存储卡是否可以用，可用进行存储
-        if (AppUtil.hasSdcard()) {
-            in.putExtra("return-data", false);
-            in.putExtra("outputFormat", Bitmap.CompressFormat.JPEG.toString());
-            in.putExtra("noFaceDetection", true);
-            in.putExtra(MediaStore.EXTRA_OUTPUT,
-                    Uri.fromFile(new File(Environment.getExternalStorageDirectory(), ICON_NAME)));
-        }else{
-            Toast.makeText(AddMemberDetailActivity.this, "SD卡不存在，请插入SD卡",
-                    Toast.LENGTH_LONG).show();
-            return;
-        }
-        startActivityForResult(in, CODE_CHOOSE_ICON_CAMERA);
-    }
-
-    private void choosePicture(){
-        Intent in = new Intent(Intent.ACTION_PICK);
-        in.setType("image/*");
-        startActivityForResult(in, CODE_CHOOSE_ICON_PICTURE);
-    }
-
-    /**
-     * 裁剪图片
-     *
-     * @param uri
-     */
-    public void startPhotoZoom(Uri uri) {
-        Intent intent = new Intent("com.android.camera.action.CROP");
-        intent.setDataAndType(uri, "image/*");
-        // 设置裁剪 crop=true是设置在开启的Intent中设置显示的VIEW可裁剪
-        intent.putExtra("crop", "true");
-        intent.putExtra("scale", true);
-        intent.putExtra("noFaceDetection", true);
-        // aspectX aspectY 是宽高的比例
-        intent.putExtra("aspectX", 1);
-        intent.putExtra("aspectY", 1);
-        // outputX outputY 是裁剪图片宽高
-        intent.putExtra("outputX", 320);
-        intent.putExtra("outputY", 320);
-        intent.putExtra("return-data", true);
-        startActivityForResult(intent, CODE_CHOOSE_ICON_ZOOM);
-    }
-
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        String temp;
-        if (resultCode == CODE_CHOOSE_ICON){
-            temp = data.getStringExtra(KEY_CHOOSE_ICON_TYPE);
-            if (!temp.isEmpty()){
-                if (temp.equals(KEY_CHOOSE_TYPE_CAMERA)){//选择照相机
-                    chooseCamera();
-                }else if (temp.equals(KEY_CHOOSE_TYPE_PICTURE)){//选择图册
-                    choosePicture();
-                }
-            }
-        }else if (requestCode == CODE_CHOOSE_ICON_CAMERA){//相机返回
-            startPhotoZoom(Uri.fromFile(new File(Environment.getExternalStorageDirectory(), ICON_NAME)));
-        }else if ((data != null) &&(requestCode == CODE_CHOOSE_ICON_PICTURE)){//图册返回
-            startPhotoZoom(data.getData());
-        }else if ((data != null) && (requestCode == CODE_CHOOSE_ICON_ZOOM)){//裁剪完后
-            Bundle extras = data.getExtras();
-            if (extras != null) {
-                iconBitMap = AppUtil.toRoundBitmap((Bitmap)extras.getParcelable("data"));
-                ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                iconBitMap.compress(Bitmap.CompressFormat.PNG, 100, baos);
-                mIcon.setImageBitmap(iconBitMap);
-                postIcon(saveIcon(baos), new FunCallback() {
-                    @Override
-                    public void onSuccess(Object result, List object) {
-
-                    }
-
-                    @Override
-                    public void onFailure(Object result, List object) {
-
-                    }
-
-                    @Override
-                    public void onCallback(Object result, List object) {
-
-                    }
-                });
+        if (requestCode == CODE_CHOOSE_ICON){
+            if(data != null) {
+                String path = data.getStringExtra("path");
+                Glide.with(this).load(path)
+                        .skipMemoryCache(true)
+                        .diskCacheStrategy(DiskCacheStrategy.NONE)
+                        .placeholder(R.mipmap.default_img)
+                        .error(R.mipmap.default_img).into(mIcon);
+                postIcon(path);
             }
         }
     }
-    private String saveIcon(ByteArrayOutputStream baos) {
-        //头像存本地
-        File baseFile = FileHelper.getBaseFile(FileHelper.PATH_PHOTOGRAPH);
-        if (baseFile == null) {
-            Toast.makeText(this, "SD卡不存在，请插入SD卡",
-                    Toast.LENGTH_LONG).show();
-            return "";
-        }
-        FileHelper.saveBitmap(iconBitMap, ICON_NAME, baseFile);
-        String imagePath = Environment
-                .getExternalStorageDirectory()
-                + File.separator
-                + FileHelper.PATH_PHOTOGRAPH + ICON_NAME;
-        return imagePath;
 
-    }
     @Override
     protected void onDestroy() {
         super.onDestroy();
@@ -246,7 +152,7 @@ public class AddMemberDetailActivity extends BaseActivity {
         }
     }
     String imageid;
-    private void postIcon(final String fileName,FunCallback funCallback) {
+    private void postIcon(final String fileName) {
         RegInfo regInfo = RegInfo.newInstance();
         TokenInfo tokenInfo = TokenInfo.newInstance();
 

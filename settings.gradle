@@ -1,2 +1,2 @@
-include ':app', ':LePlayerSkin', ':LePlayerSdk',':autolayout'
+include ':app', ':LePlayerSkin', ':LePlayerSdk', ':autolayout', ':Selpiclibrary'
 include ':Android-PullToRefresh'
